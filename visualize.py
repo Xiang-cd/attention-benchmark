@@ -1,30 +1,38 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import json
+import argparse
 
-def load_benchmark_data():
-    # 示例数据结构
-    data = {
-        'seqlen': [128, 256, 512] * 2,  # 重复以覆盖不同组合
-        'batch_size': [1, 1, 1, 2, 2, 2],
-        'headdim': [32, 32, 32] * 2,
-        'algorithm': ['flash', 'flash', 'flash', 'vanilla', 'vanilla', 'vanilla'],
-        'time_ms': [1, 10, 20, 2, 12, 24],  # 示例时间数据
-        'flops': [10, 15, 20, 12, 18, 24],  # 示例FLOPS数据
-    }
-    return pd.DataFrame(data)
+def load_benchmark_data(file):
+    # 读取 JSON 文件
+    with open(file, 'r') as f:
+        data = json.load(f)
+    
+    # 将 JSON 数据转换为 Pandas DataFrame
+    df = pd.DataFrame(data)
+    
+    # 确保数据结构与示例数据一致
+    required_columns = ['seq_len', 'batch_size', 'headdim', 'numhead', 'algorithm', 'time', 'flops', 'mode']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Missing required column: {col}")
+    return df
 
 def main():
-    st.title("Attention Benchmark Visualization")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--file', help='json file')
+    args = parser.parse_args()
+    df = load_benchmark_data(args.file)
+    
+    st.title(f"Attention Benchmark Visualization {args.file}")
     
     # 加载数据
-    df = load_benchmark_data()
     
     # 侧边栏控制
     st.sidebar.header("参数设置")
     metric = st.sidebar.selectbox(
         "选择指标",
-        ["time_ms", "flops"]
+        ["time", "flops"]
     )
     
     # 添加算法选择
@@ -41,6 +49,12 @@ def main():
         default=df['headdim'].unique()
     )
     
+    selected_numhead = st.sidebar.multiselect(
+        "选择Head Dimension",
+        options=df['numhead'].unique(),
+        default=df['numhead'].unique()
+    )
+    
     selected_batch_size = st.sidebar.multiselect(
         "选择batch size",
         options=df['batch_size'].unique(),
@@ -52,7 +66,8 @@ def main():
     filtered_df = df[
         (df['algorithm'].isin(selected_algorithms)) &
         (df['headdim'].isin(selected_headdims)) & 
-        (df['batch_size'].isin(selected_batch_size))
+        (df['batch_size'].isin(selected_batch_size)) &
+        (df['numhead'].isin(selected_numhead))
     ]
     
         # 为每个算法和headdim组合创建一个唯一标识
@@ -65,7 +80,7 @@ def main():
     pivot_df = filtered_df.pivot(
         columns='group',
         values=metric,
-        index='seqlen'
+        index='seq_len'
     )
     
     st.subheader(f"Sequence Length vs {metric}")
