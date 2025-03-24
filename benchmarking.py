@@ -15,9 +15,10 @@ args = parser.parse_args()
 
 head_dim_ls = [64, 128]
 num_head_ls = [32]
-batch_size_ls = [4]
+batch_size_ls = [1, 4]
 seq_len_ls = [1024*2**i for i in range(2, 9)]
 device = 'cuda'
+device_name = torch.cuda.get_device_name(device)
 sm = torch.cuda.get_device_capability()
 sm = 10*sm[0] + sm[1]
 if sm >= 89:
@@ -74,7 +75,11 @@ for headdim, head, batch, seq_len, method in tqdm(list(itertools.product(head_di
         continue
 
 with open(args.output, 'w') as f:
-    json.dump(res_ls, f, indent=4)
+    res_dict = {
+        'device_name': device_name,
+        'res_ls': res_ls
+    }
+    json.dump(res_dict, f, indent=4)
     
 
 # is_causal = True

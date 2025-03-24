@@ -7,7 +7,7 @@ def load_benchmark_data(file):
     # 读取 JSON 文件
     with open(file, 'r') as f:
         data = json.load(f)
-    
+    data = data['res_ls']
     # 将 JSON 数据转换为 Pandas DataFrame
     df = pd.DataFrame(data)
     
@@ -23,8 +23,10 @@ def main():
     parser.add_argument('-f', '--file', help='json file')
     args = parser.parse_args()
     df = load_benchmark_data(args.file)
-    
-    st.title(f"Attention Benchmark Visualization {args.file}")
+    with open(args.file, 'r') as f:
+        data = json.load(f)
+    device_name = data['device_name']
+    st.title(f"Attention Benchmark Visualization {args.file} {device_name}")
     
     # 加载数据
     

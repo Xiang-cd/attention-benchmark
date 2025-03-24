@@ -12,3 +12,15 @@ git clone https://github.com/thu-ml/SageAttention.git
 cd SageAttention 
 pip install .
 ```
+
+## run benchmark
+
+```shell
+ python benchmarking.py -o test2.json
+```
+
+## visualize your res
+```shell
+python visualize.py -f test2.json
+```
+
