@@ -21,6 +21,6 @@ pip install .
 
 ## visualize your res
 ```shell
-python visualize.py -f test2.json
+streamlit run ./visualize.py -- -f ./test2.json     
 ```
 

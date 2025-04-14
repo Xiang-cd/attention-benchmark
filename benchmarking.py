@@ -72,6 +72,7 @@ for headdim, head, batch, seq_len, method in tqdm(list(itertools.product(head_di
         })
     except RuntimeError as e:
         print(method.__name__)
+        print(e)
         continue
 
 with open(args.output, 'w') as f:
